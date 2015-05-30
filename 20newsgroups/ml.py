@@ -17,26 +17,24 @@ if __name__ == '__main__':
     d = fetch_20newsgroups_vectorized(
             remove=('headers', 'footers', 'quotes'))
     X = d.data
-    X = StandardScaler(with_mean=False).fit_transform(X)
+    #X = StandardScaler(with_mean=False).fit_transform(X)
     #X = TruncatedSVD(n_components=400).fit_transform(X)
     y = d.target
     _n = X.shape[0]
 
-    #clf = MultinomialNB()
-    #params = {
-    #        'alpha': numpy.linspace(0,0.1,1000)
-    #}
+    clf = MultinomialNB()
+    params = {
+            'alpha': numpy.linspace(0,1,1000)
+    }
 
     # http://scikit-learn.org/stable/modules/sgd.html#tips-on-practical-use
-    #clf = SGDClassifier(n_iter=best_n_iter(_n))
-    #params = {
-    #        'alpha': 10**numpy.linspace(-7,-1)
-    #}
-    clf = LinearSVC()
+    """
+    clf = SGDClassifier(n_iter=best_n_iter(_n))
     params = {
-            'C': 2**numpy.linspace(-3,3)
+            'alpha': 10**numpy.linspace(-7,-1,1000),
     }
-    cv = RandomizedSearchCV(clf, params, n_iter=20, cv=best_cv_num(_n), n_jobs=-1, verbose=3)
+    """
+    cv = RandomizedSearchCV(clf, params, n_iter=20, cv=best_cv_num(_n), n_jobs=2, verbose=3)
     cv.fit(X, y)
     print(cv.best_score_)
     print(cv.best_params_)

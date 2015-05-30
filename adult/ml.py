@@ -6,6 +6,7 @@ from sklearn.preprocessing import LabelBinarizer, StandardScaler
 from sklearn.pipeline import Pipeline
 from sklearn.svm import LinearSVC, SVC
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.linear_model import SGDClassifier
 from sklearn.grid_search import RandomizedSearchCV
 from sklearn.feature_extraction import DictVectorizer
 from scipy.stats import randint as sp_randint
@@ -25,6 +26,8 @@ def contains_na_columns(d):
 def best_cv_num(n):
     return int(1+numpy.log2(n))
 
+def best_n_iter(n):
+    return numpy.ceil(10**6 / n)
 
 if __name__ == '__main__':
     #
@@ -53,15 +56,24 @@ if __name__ == '__main__':
     y = d.loc[:, 'label'].values
     _n = d.shape[0]
 
+    """
     # http://scikit-learn.org/stable/modules/feature_selection.html#selecting-non-zero-coefficients
     p = Pipeline([
         ('clf', LinearSVC(penalty='l1', dual=False)),
         ])
-
     params = {
         'clf__C': 2**numpy.linspace(-3,3,1000),
     }
     cv = RandomizedSearchCV(p, params, n_iter=20, cv=best_cv_num(_n), n_jobs=2, verbose=3)
+    cv.fit(X, y)
+    print(cv.best_score_)
+    print(cv.best_params_)
+    """
+    clf = SGDClassifier(n_iter=best_n_iter(_n))
+    params = {
+            'alpha': 10**numpy.linspace(-7,-1,1000),
+    }
+    cv = RandomizedSearchCV(clf, params, n_iter=20, cv=best_cv_num(_n), n_jobs=2, verbose=3)
     cv.fit(X, y)
     print(cv.best_score_)
     print(cv.best_params_)
