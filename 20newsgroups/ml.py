@@ -24,7 +24,7 @@ if __name__ == '__main__':
 
     clf = MultinomialNB()
     params = {
-            'alpha': numpy.linspace(0,1,1000)
+            'alpha': 10**numpy.linspace(-7,0,1000)
     }
 
     # http://scikit-learn.org/stable/modules/sgd.html#tips-on-practical-use
