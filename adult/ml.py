@@ -47,15 +47,29 @@ if __name__ == '__main__':
     # In [ ]: contains_na_columns(d)
     # Out[ ]: Index([u'native_country', u'occupation', u'workclass'], dtype='object')
     d.loc[:,'label'] = (d.loc[:,'label'] == '>50K')
+    # 欠損値の予測を行って埋めてみても良いかも？
     _cols = ['native_country', 'occupation', 'workclass']
     d.loc[:,_cols] = d.loc[:,_cols].fillna('?')
     d.loc[:,'working_year'] = d.loc[:,'age'] - d.loc[:,'education_num']
 
-    X = d.loc[:, d.columns != 'label'].T.to_dict().values()
-    X = DictVectorizer().fit_transform(X)
-    X = StandardScaler(with_mean=False).fit_transform(X)
     y = d.loc[:, 'label'].values
-    _n = d.shape[0]
+    d = d.loc[:, d.columns != 'label']
+
+    for i in xrange(len(d.columns)):
+        X = d.loc[:, d.columns == d.columns[i]].T.to_dict().values()
+        X = DictVectorizer().fit_transform(X)
+        X = StandardScaler(with_mean=False).fit_transform(X)
+        _n = d.shape[0]
+
+        clf = SGDClassifier(n_iter=best_n_iter(_n))
+        params = {
+                'alpha': 10**numpy.linspace(-7,-1,1000),
+        }
+        cv = RandomizedSearchCV(clf, params, n_iter=20, cv=best_cv_num(_n), n_jobs=2, verbose=1, scoring='f1')
+        cv.fit(X, y)
+        print('only: ' + d.columns[i])
+        print(cv.best_score_)
+        print(cv.best_params_)
 
     """
     # http://scikit-learn.org/stable/modules/feature_selection.html#selecting-non-zero-coefficients
@@ -70,14 +84,6 @@ if __name__ == '__main__':
     print(cv.best_score_)
     print(cv.best_params_)
     """
-    clf = SGDClassifier(n_iter=best_n_iter(_n))
-    params = {
-            'alpha': 10**numpy.linspace(-7,-1,1000),
-    }
-    cv = RandomizedSearchCV(clf, params, n_iter=20, cv=best_cv_num(_n), n_jobs=2, verbose=3)
-    cv.fit(X, y)
-    print(cv.best_score_)
-    print(cv.best_params_)
     """
     factor = cv.best_estimator_.named_steps['clf'].coef_.tolist()
     result = zip(factor, categorical_columns(d))
@@ -85,7 +91,6 @@ if __name__ == '__main__':
     for a,b in result[:20]:
             print(a,b)
     """
-    
     """
     p = RandomForestClassifier()
     params = {
@@ -101,7 +106,6 @@ if __name__ == '__main__':
     print(cv.best_score_)
     print(cv.best_params_)
     """
-
     """
     clf = GradientBoostingClassifier()
     cv = RandomizedSearchCV(clf, {}, n_iter=1, cv=best_cv_num(_n), n_jobs=-1, verbose=3)
