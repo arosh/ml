@@ -79,8 +79,6 @@ if __name__ == '__main__':
         print('epoch = {}'.format(epoch))
 
         # train
-        sum_loss = 0
-        sum_accuracy = 0
         X_train, y_train = shuffle(X_train, y_train)
         for i in xrange(0, n_train, batch_size):
             X_batch = X_train[i:i+batch_size]
@@ -92,22 +90,16 @@ if __name__ == '__main__':
             loss.backward()
             opt.update()
 
-            loss, acc = forward(X_batch, y_batch)
-            sum_loss     += float(loss.data) * n_batch
-            sum_accuracy += float(acc.data)  * n_batch
-
-        train_loss.append(sum_loss / n_train)
-        train_accuracy.append(sum_accuracy / n_train)
+        loss, acc = forward(X_train, y_train)
+        train_loss.append(float(loss.data))
+        train_accuracy.append(float(acc.data))
 
         # test
         X_test, y_test = shuffle(X_test, y_test)
 
         loss, acc = forward(X_test, y_test)
-        sum_loss     = float(loss.data)
-        sum_accuracy = float(acc.data)
-
-        test_loss.append(sum_loss)
-        test_accuracy.append(sum_accuracy)
+        test_loss.append(float(loss.data))
+        test_accuracy.append(float(acc.data))
 
         print('train loss={} accuracy={}'.format(train_loss[-1], train_accuracy[-1]))
         print('test  loss={} accuracy={}'.format(test_loss[-1], test_accuracy[-1]))
